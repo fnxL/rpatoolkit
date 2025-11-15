@@ -1,5 +1,6 @@
 import polars as pl
 import logging
+import re
 from polars._typing import FileSource, SchemaDict, ExcelSpreadsheetEngine
 from typing import Any, Sequence
 
@@ -120,6 +121,8 @@ def read_excel(
     header_row: int | None = None,
     cast: dict[str, pl.DataType] | None = None,
     read_all_sheets: bool = False,
+    lower_column_names: bool = True,
+    clean_column_names: bool = False,
 ) -> pl.LazyFrame | dict[str, pl.LazyFrame]:
     """
     Reads an Excel file into a Polars LazyFrame.
@@ -163,8 +166,10 @@ def read_excel(
         Dictionary mapping column names to desired data types for casting.
     read_all_sheets : bool, default=False
         Read all sheets in the Excel workbook.
-    **kwargs : Any
-        Additional keyword arguments passed to polars.read_excel
+    lower_column_names : bool, default=True
+        Convert column names to lowercase
+    clean_column_names : bool, default=False
+        Clean column names by stripping punctuation
 
     Returns
     -------
@@ -235,14 +240,49 @@ def read_excel(
         drop_empty_cols=drop_empty_cols,
         raise_if_empty=raise_if_empty,
     )
-    df = _lower_column_names(df)
+    if lower_column_names:
+        df = _lower_column_names(df)
+
+    if clean_column_names:
+        df = _clean_column_names(df)
+
     df = _cast_columns(df, cast=cast)
     return df.lazy()
+
+
+def _clean_column_names(df: pl.DataFrame) -> pl.DataFrame:
+    df.columns = [_strip_punctuation(col) for col in df.columns]
+    return df
 
 
 def _lower_column_names(df: pl.DataFrame) -> pl.DataFrame:
     df.columns = [col.strip().lower() for col in df.columns]
     return df
+
+
+def _strip_punctuation(text: str, replacement: str = "") -> str:
+    """
+    Strip punctuations from a string, particularly useful for cleaning table column headers.
+
+    Args:
+        text (str): The input string (typically a column header name)
+        replacement (str, optional): Character to replace punctuation with. Defaults to '' (removes punctuation).
+
+    Returns:
+        str: String with punctuation stripped or replaced
+
+    Examples:
+        >>> strip_punctuation("First Name!")
+        'First Name'
+        >>> strip_punctuation("Last, Name")
+        'Last Name'
+        >>> strip_punctuation("Age?", replacement='_')
+        'Age_'
+    """
+    if not isinstance(text, str):
+        raise TypeError("Input must be a string")
+    cleaned_text = re.sub(r"[^\w\s]", replacement, text)
+    return cleaned_text.strip()
 
 
 def _cast_columns(
@@ -262,12 +302,19 @@ def _cast_columns(
 
 def _read_all_sheets(
     df: dict[str, pl.DataFrame],
+    lower_column_names: bool = True,
+    clean_column_names: bool = False,
     cast: dict[str, pl.DataType] | None = None,
 ) -> dict[str, pl.LazyFrame]:
     result_dfs: dict[str, pl.LazyFrame] = {}
 
     for sheet_name, df in df.items():
-        df = _lower_column_names(df)
+        if lower_column_names:
+            df = _lower_column_names(df)
+
+        if clean_column_names:
+            df = _clean_column_names(df)
+
         df = _cast_columns(df, cast=cast)
         result_dfs[sheet_name.lower()] = df.lazy()
 
