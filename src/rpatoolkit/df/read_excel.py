@@ -2,7 +2,7 @@ import polars as pl
 import logging
 import re
 from polars._typing import FileSource, SchemaDict, ExcelSpreadsheetEngine
-from typing import Any, Sequence, overload
+from typing import Any, Sequence, Literal, NoReturn, overload
 
 log = logging.getLogger(__name__)
 
@@ -11,8 +11,8 @@ log = logging.getLogger(__name__)
 def read_excel(
     source: FileSource,
     *,
-    sheet_id: int | None = None,
-    sheet_name: str | None = None,
+    sheet_id: Literal[0] | list[int] = ...,
+    sheet_name: None = ...,
     table_name: str | None = ...,
     engine: ExcelSpreadsheetEngine = ...,
     engine_options: dict[str, Any] | None = ...,
@@ -27,7 +27,6 @@ def read_excel(
     raise_if_empty: bool = ...,
     header_row: int | None = ...,
     cast: dict[str, pl.DataType] | None = ...,
-    read_all_sheets: bool = True,
     lower_column_names: bool = ...,
     clean_column_names: bool = ...,
 ) -> dict[str, pl.LazyFrame]: ...
@@ -37,8 +36,8 @@ def read_excel(
 def read_excel(
     source: FileSource,
     *,
-    sheet_id: int | None = None,
-    sheet_name: str | None = None,
+    sheet_id: None = ...,
+    sheet_name: str = ...,
     table_name: str | None = ...,
     engine: ExcelSpreadsheetEngine = ...,
     engine_options: dict[str, Any] | None = ...,
@@ -53,17 +52,116 @@ def read_excel(
     raise_if_empty: bool = ...,
     header_row: int | None = ...,
     cast: dict[str, pl.DataType] | None = ...,
-    read_all_sheets: bool = False,
     lower_column_names: bool = ...,
     clean_column_names: bool = ...,
 ) -> pl.LazyFrame: ...
 
 
+@overload
 def read_excel(
     source: FileSource,
     *,
-    sheet_id: int | None = None,
-    sheet_name: str | None = None,
+    sheet_id: None = ...,
+    sheet_name: None = ...,
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> pl.LazyFrame: ...
+
+
+@overload
+def read_excel(
+    source: FileSource,
+    *,
+    sheet_id: int = ...,
+    sheet_name: None = ...,
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> pl.LazyFrame: ...
+
+
+@overload
+def read_excel(
+    source: FileSource,
+    *,
+    sheet_id: None = ...,
+    sheet_name: list[str],
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> dict[str, pl.LazyFrame]: ...
+
+
+@overload
+def read_excel(
+    source: FileSource,
+    *,
+    sheet_id: int = ...,
+    sheet_name: str = ...,
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> NoReturn: ...
+
+
+def read_excel(
+    source: FileSource,
+    *,
+    sheet_id: int | list[int] | None = None,
+    sheet_name: str | list[str] | None = None,
     table_name: str | None = None,
     engine: ExcelSpreadsheetEngine = "calamine",
     engine_options: dict[str, Any] | None = None,
@@ -78,7 +176,6 @@ def read_excel(
     raise_if_empty: bool = True,
     header_row: int | None = None,
     cast: dict[str, pl.DataType] | None = None,
-    read_all_sheets: bool = False,
     lower_column_names: bool = True,
     clean_column_names: bool = False,
 ) -> pl.LazyFrame | dict[str, pl.LazyFrame]:
@@ -86,16 +183,16 @@ def read_excel(
     Reads an Excel file into a Polars LazyFrame.
 
     This function extends Polars' read_excel functionality by adding automatic
-    column name cleaning and optional data type casting after cleaning the columns. It reads an excel file and returns a LazyFrame or a dictionary of LazyFrames if read_all_sheets is True.
+    column name cleaning and optional data type casting after cleaning the columns. It reads an excel file and returns a LazyFrame or a dictionary of LazyFrames if reading multiple sheets.
 
     Parameters
     ----------
     source :
         Path to the Excel file or file-like object to read
     sheet_id :
-        Sheet number to read (cannot be used with sheet_name)
+        Sheet number(s) to read (cannot be used with sheet_name). Use 0 to read all sheets as a dictionary, or a list of integers to read specific sheets as a dictionary
     sheet_name :
-        Sheet name to read (cannot be used with sheet_id)
+        Sheet name(s) to read (cannot be used with sheet_id). Use a list of strings to read multiple sheets as a dictionary
     table_name :
         Name of a specific table to read.
     engine : {'calamine', 'openpyxl', 'xlsx2csv'}
@@ -112,18 +209,18 @@ def read_excel(
         Support type specification or override of one or more columns.
     infer_schema_length : int, optional
         Number of rows to infer the schema from
-    read_options :
-        Dictionary of read options passed to polars.read_excel
+    include_file_paths :
+        Column name for including file paths in the result
     drop_empty_rows :
         Remove empty rows from the result
     drop_empty_cols :
         Remove empty columns from the result
     raise_if_empty :
         Raise an exception if the resulting DataFrame is empty
+    header_row : int, optional
+        Row number to use as header (0-indexed). Overrides has_header parameter when specified
     cast : dict[str, pl.DataType], optional
         Dictionary mapping column names to desired data types for casting.
-    read_all_sheets : bool, default=False
-        Read all sheets in the Excel workbook.
     lower_column_names : bool, default=True
         Convert column names to lowercase
     clean_column_names : bool, default=False
@@ -132,58 +229,44 @@ def read_excel(
     Returns
     -------
     LazyFrame
-        A Polars LazyFrame
+        A Polars LazyFrame when reading a single sheet
 
     dict[str, LazyFrame]
-        if reading multiple sheets using read_all_sheets=True, "{sheetname: LazyFrame, ...}" dict is returned
+        A dictionary of LazyFrames when reading multiple sheets
 
     Raises
     ------
     ValueError
         If both sheet_id and sheet_name are specified
-        If sheet_id is 0
+        If sheet_id is 0 (reserved for reading all sheets)
 
     Note:
     -----
-    Column names are stripped and converted to lowercase
+    Column names are stripped and converted to lowercase when lower_column_names=True
 
     Examples
     --------
     >>> df = read_excel("data.xlsx")
     >>> df = read_excel("data.xlsx", sheet_name="Sheet1")
+    >>> df = read_excel("data.xlsx", sheet_id=1)
+    >>> df_dict = read_excel("data.xlsx", sheet_id=0)  # Read all sheets
     >>> df = read_excel("data.xlsx", cast={"date": pl.Date, "value": pl.Float64})
     """
 
     if sheet_id is not None and sheet_name is not None:
         raise ValueError("sheet_id and sheet_name cannot be both specified.")
 
-    if sheet_id == 0:
-        raise ValueError("sheet_id must start from 1.")
-
-    if header_row:
-        if read_options:
-            read_options["header_row"] = header_row
+    # Prepare read_options with header_row if specified
+    if header_row is not None:
+        if read_options is None:
+            read_options = {"header_row": header_row}
         else:
-            read_options = {
-                "header_row": header_row,
-            }
+            read_options["header_row"] = header_row
 
-    if read_all_sheets:
-        df = pl.read_excel(
-            source=source,
-            sheet_id=0,  # sheet_id=0 is used to read all sheets
-            columns=columns,
-            read_options=read_options,
-            drop_empty_rows=drop_empty_rows,
-            drop_empty_cols=drop_empty_cols,
-            raise_if_empty=raise_if_empty,
-        )
-        df = _read_all_sheets(df, cast=cast)
-        return df
-
+    # Read excel with all parameters
     df = pl.read_excel(
         source=source,
-        sheet_id=sheet_id,  # sheet_id=0 is used to read all sheets
+        sheet_id=sheet_id,
         sheet_name=sheet_name,
         table_name=table_name,
         engine=engine,
@@ -198,14 +281,60 @@ def read_excel(
         drop_empty_cols=drop_empty_cols,
         raise_if_empty=raise_if_empty,
     )
+
+    # Determine if we're dealing with multiple sheets based on input parameters
+    # sheet_id=0 means read all sheets, which returns a dict
+    if sheet_id == 0 or isinstance(sheet_id, list) or isinstance(sheet_name, list):
+        # Multiple sheets case - df is a dict[str, pl.DataFrame]
+        return _read_multiple_sheets(
+            df,
+            lower_column_names=lower_column_names,
+            clean_column_names=clean_column_names,
+            cast=cast,
+        )
+
+    # Single sheet case - df is a pl.DataFrame
+    return _read_single_sheet(
+        df,
+        lower_column_names=lower_column_names,
+        clean_column_names=clean_column_names,
+        cast=cast,
+    )
+
+
+def _read_single_sheet(
+    df: pl.DataFrame,
+    lower_column_names: bool = True,
+    clean_column_names: bool = False,
+    cast: dict[str, pl.DataType] | None = None,
+) -> pl.LazyFrame:
     if lower_column_names:
         df = _lower_column_names(df)
 
     if clean_column_names:
         df = _clean_column_names(df)
-
     df = _cast_columns(df, cast=cast)
     return df.lazy()
+
+
+def _read_multiple_sheets(
+    df: dict[str, pl.DataFrame],
+    lower_column_names: bool = True,
+    clean_column_names: bool = False,
+    cast: dict[str, pl.DataType] | None = None,
+) -> dict[str, pl.LazyFrame]:
+    result_dfs: dict[str, pl.LazyFrame] = {}
+    for sheet_name, df in df.items():
+        if lower_column_names:
+            df = _lower_column_names(df)
+
+        if clean_column_names:
+            df = _clean_column_names(df)
+
+        df = _cast_columns(df, cast=cast)
+        result_dfs[sheet_name.lower()] = df.lazy()
+
+    return result_dfs
 
 
 def _clean_column_names(df: pl.DataFrame) -> pl.DataFrame:
@@ -230,11 +359,11 @@ def _strip_punctuation(text: str, replacement: str = "") -> str:
         str: String with punctuation stripped or replaced
 
     Examples:
-        >>> strip_punctuation("First Name!")
+        >>> _strip_punctuation("First Name!")
         'First Name'
-        >>> strip_punctuation("Last, Name")
+        >>> _strip_punctuation("Last, Name")
         'Last Name'
-        >>> strip_punctuation("Age?", replacement='_')
+        >>> _strip_punctuation("Age?", replacement='_')
         'Age_'
     """
     if not isinstance(text, str):
@@ -256,24 +385,3 @@ def _cast_columns(
             df = df.with_columns(pl.col(col).cast(dtype, strict=False))
 
     return df
-
-
-def _read_all_sheets(
-    df: dict[str, pl.DataFrame],
-    lower_column_names: bool = True,
-    clean_column_names: bool = False,
-    cast: dict[str, pl.DataType] | None = None,
-) -> dict[str, pl.LazyFrame]:
-    result_dfs: dict[str, pl.LazyFrame] = {}
-
-    for sheet_name, df in df.items():
-        if lower_column_names:
-            df = _lower_column_names(df)
-
-        if clean_column_names:
-            df = _clean_column_names(df)
-
-        df = _cast_columns(df, cast=cast)
-        result_dfs[sheet_name.lower()] = df.lazy()
-
-    return result_dfs
