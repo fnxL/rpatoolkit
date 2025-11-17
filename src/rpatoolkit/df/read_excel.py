@@ -2,9 +2,61 @@ import polars as pl
 import logging
 import re
 from polars._typing import FileSource, SchemaDict, ExcelSpreadsheetEngine
-from typing import Any, Sequence
+from typing import Any, Sequence, overload
 
 log = logging.getLogger(__name__)
+
+
+@overload
+def read_excel(
+    source: FileSource,
+    *,
+    sheet_id: int | None = None,
+    sheet_name: str | None = None,
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    read_all_sheets: bool = True,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> dict[str, pl.LazyFrame]: ...
+
+
+@overload
+def read_excel(
+    source: FileSource,
+    *,
+    sheet_id: int | None = None,
+    sheet_name: str | None = None,
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    read_all_sheets: bool = False,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> pl.LazyFrame: ...
 
 
 def read_excel(
