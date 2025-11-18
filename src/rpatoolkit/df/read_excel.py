@@ -11,6 +11,31 @@ log = logging.getLogger(__name__)
 def read_excel(
     source: FileSource,
     *,
+    sheet_id: None = ...,
+    sheet_name: None = ...,
+    table_name: str | None = ...,
+    engine: ExcelSpreadsheetEngine = ...,
+    engine_options: dict[str, Any] | None = ...,
+    read_options: dict[str, Any] | None = ...,
+    has_header: bool = ...,
+    columns: Sequence[int] | Sequence[str] | str | None = ...,
+    schema_overrides: SchemaDict | None = ...,
+    infer_schema_length: int | None = ...,
+    include_file_paths: str | None = ...,
+    drop_empty_rows: bool = ...,
+    drop_empty_cols: bool = ...,
+    raise_if_empty: bool = ...,
+    header_row: int | None = ...,
+    cast: dict[str, pl.DataType] | None = ...,
+    lower_column_names: bool = ...,
+    clean_column_names: bool = ...,
+) -> pl.LazyFrame: ...
+
+
+@overload
+def read_excel(
+    source: FileSource,
+    *,
     sheet_id: Literal[0] | list[int] = ...,
     sheet_name: None = ...,
     table_name: str | None = ...,
@@ -38,31 +63,6 @@ def read_excel(
     *,
     sheet_id: None = ...,
     sheet_name: str = ...,
-    table_name: str | None = ...,
-    engine: ExcelSpreadsheetEngine = ...,
-    engine_options: dict[str, Any] | None = ...,
-    read_options: dict[str, Any] | None = ...,
-    has_header: bool = ...,
-    columns: Sequence[int] | Sequence[str] | str | None = ...,
-    schema_overrides: SchemaDict | None = ...,
-    infer_schema_length: int | None = ...,
-    include_file_paths: str | None = ...,
-    drop_empty_rows: bool = ...,
-    drop_empty_cols: bool = ...,
-    raise_if_empty: bool = ...,
-    header_row: int | None = ...,
-    cast: dict[str, pl.DataType] | None = ...,
-    lower_column_names: bool = ...,
-    clean_column_names: bool = ...,
-) -> pl.LazyFrame: ...
-
-
-@overload
-def read_excel(
-    source: FileSource,
-    *,
-    sheet_id: None = ...,
-    sheet_name: None = ...,
     table_name: str | None = ...,
     engine: ExcelSpreadsheetEngine = ...,
     engine_options: dict[str, Any] | None = ...,
