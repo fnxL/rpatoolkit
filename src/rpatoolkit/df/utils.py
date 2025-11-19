@@ -1,8 +1,7 @@
 import logging
 import polars as pl
 from polars._typing import FileSource
-from .read_excel import _strip_punctuation
-
+from rpatoolkit.utils import strip_punctuation
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ def normalize_columns(
         df = df.rename(temp_rename_dict)
     else:
         clean_columns = [col.lower() for col in df.columns]
-        clean_columns = [_strip_punctuation(col.strip().lower()) for col in df.columns]
+        clean_columns = [strip_punctuation(col.strip().lower()) for col in df.columns]
         df.columns = clean_columns
 
     rename_dict = {}

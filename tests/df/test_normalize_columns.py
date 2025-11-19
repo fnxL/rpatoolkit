@@ -1,6 +1,6 @@
 import pytest
 import polars as pl
-from rpatoolkit.df.utils import normalize_columns
+from rpatoolkit.df import normalize_columns
 
 
 def test_normalize_columns_basic():

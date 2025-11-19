@@ -3,14 +3,14 @@ The filesystem module contains several utility functions related to fs
 """
 
 from pathlib import Path
-from uuid import uuid4
 from datetime import datetime, timezone
+from rpatoolkit.utils import random_string
 
 
 def make_unique_dir(
     base_path: str | Path = ".",
     prefix: str | None = "",
-    suffix: str | None = str(uuid4()),
+    suffix: str | None = None,
     include_date: bool = True,
     include_time: bool = True,
     use_12h_format: bool = True,
@@ -28,7 +28,7 @@ def make_unique_dir(
     Args:
         base_path (str | Path, optional): The base directory path where the unique directory will be created. Defaults to "." (current directory).
         prefix (str | None, optional): A prefix to add to the directory name. Defaults to "".
-        suffix (str | None, optional): A suffix to add to the directory name. Defaults to a UUID4 string.
+        suffix (str | None, optional): A suffix to add to the directory name. Defaults to a a 12 character alphanumeric string.
         include_date (bool, optional): Whether to include the current date in the directory name. Defaults to True.
         include_time (bool, optional): Whether to include the current time in the directory name. Defaults to True.
         use_12h_format (bool, optional): Whether to use 12-hour format for time (with AM/PM). If False, uses 24-hour format. Defaults to True.
@@ -46,6 +46,8 @@ def make_unique_dir(
         backup_24.10.24_a2b3c4d5-e6f7-8901-2345-678901234567
     """
     now = datetime.now(timezone.utc)
+    if suffix is None:
+        suffix = random_string()
 
     date_part = ""
     if include_date:
