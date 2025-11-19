@@ -1,25 +1,82 @@
 import logging
 import polars as pl
 from polars._typing import FileSource
+from .read_excel import _strip_punctuation
 
 
 log = logging.getLogger(__name__)
 
 
-def rename_columns(
-    df: pl.DataFrame | pl.LazyFrame, columns_map: dict, strict: bool = True
+def normalize_columns(
+    df: pl.DataFrame | pl.LazyFrame, mapping: dict[str, list[str] | str]
 ) -> pl.DataFrame | pl.LazyFrame:
     """
-    Rename columns of a Polars DataFrame or LazyFrame.
-
+    Rename columns in a Polars DataFrame based on a mapping dictionary.
     Args:
-        df (pl.DataFrame | pl.LazyFrame): The input DataFrame or LazyFrame.
-        columns_map (dict): A dictionary mapping old column names to new column names.
+        df: Input Polars DataFrame
+        column_mapping: Dictionary mapping final column names to lists of possible
+                       original column names. Format:
+                       {"final_name": ["possible_name1", "possible_name2", ...]}
 
     Returns:
-        pl.DataFrame | pl.LazyFrame: The DataFrame or LazyFrame with renamed columns.
+        DataFrame with renamed columns
+
+    Raises:
+        ValueError: If multiple columns in the DataFrame map to the same final name
     """
-    return df.rename(columns_map, strict=strict)
+    # Build a reverse mapping for O(1) lookup of actual_column_names to final_column_name
+    reverse_mapping = {}
+    for final_name, possible_names in mapping.items():
+        if isinstance(possible_names, str):
+            possible_names = [possible_names]
+
+        for name in possible_names:
+            if name in reverse_mapping:
+                prev_final = reverse_mapping[name]
+                raise ValueError(
+                    f"Duplicate column name found. Ambiguous mapping: column '{name}' maps to both "
+                    f"'{prev_final}' and '{final_name}'"
+                )
+
+            reverse_mapping[name] = final_name
+
+    # First remove all punctuations from the df.columns
+    if isinstance(df, pl.LazyFrame):
+        clean_columns = [col.lower() for col in df.collect_schema().names()]
+        temp_rename_dict = {
+            k: v for k, v in zip(df.collect_schema().names(), clean_columns)
+        }
+        df = df.rename(temp_rename_dict)
+    else:
+        clean_columns = [col.lower() for col in df.columns]
+        clean_columns = [_strip_punctuation(col.strip().lower()) for col in df.columns]
+        df.columns = clean_columns
+
+    rename_dict = {}
+    finalized_names = {}
+    df_cols = (
+        df.columns if isinstance(df, pl.DataFrame) else df.collect_schema().names()
+    )
+    for col in df_cols:
+        if col in reverse_mapping:
+            final_name = reverse_mapping[col]
+
+            # Check if multiple df columns map to the same final name
+            if final_name in finalized_names:
+                raise ValueError(
+                    f"Conflict: multiple columns map to the same final name: {final_name}"
+                    f"'{finalized_names[final_name]}' and '{col}'"
+                )
+
+            # Add to the rename_dict if col and final_name are different
+            if col != final_name:
+                rename_dict[col] = final_name
+                finalized_names[final_name] = col
+
+    if rename_dict:
+        return df.rename(rename_dict)
+
+    return df
 
 
 def reorder_columns(

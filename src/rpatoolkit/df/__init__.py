@@ -1,2 +1,7 @@
 from .read_excel import read_excel
-from .utils import rename_columns, get_missing_columns, reorder_columns, find_header_row
+from .utils import (
+    get_missing_columns,
+    reorder_columns,
+    find_header_row,
+    normalize_columns,
+)
