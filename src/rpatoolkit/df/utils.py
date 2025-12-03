@@ -52,6 +52,7 @@ def normalize_columns(
             possible_names = [possible_names]
 
         for name in possible_names:
+            name = name.lower()
             if name in reverse_mapping:
                 prev_final = reverse_mapping[name]
                 raise ValueError(
@@ -94,6 +95,7 @@ def normalize_columns(
         df.columns if isinstance(df, pl.DataFrame) else df.collect_schema().names()
     )
     for col in df_cols:
+        col = col.strip().lower()
         if col in reverse_mapping:
             final_name = reverse_mapping[col]
 
