@@ -1,13 +1,35 @@
 import logging
 import polars as pl
 from polars._typing import FileSource
+from typing import overload
 from rpatoolkit.utils import strip_punctuation
 
 log = logging.getLogger(__name__)
 
 
+@overload
 def normalize_columns(
-    df: pl.DataFrame | pl.LazyFrame, mapping: dict[str, list[str] | str]
+    df: pl.LazyFrame,
+    mapping: dict[str, list[str] | str] = ...,
+    remove_punctuation: bool = ...,
+    lowercase_columns: bool = ...,
+) -> pl.LazyFrame: ...
+
+
+@overload
+def normalize_columns(
+    df: pl.DataFrame,
+    mapping: dict[str, list[str] | str] = ...,
+    remove_punctuation: bool = ...,
+    lowercase_columns: bool = ...,
+) -> pl.DataFrame: ...
+
+
+def normalize_columns(
+    df: pl.DataFrame | pl.LazyFrame,
+    mapping: dict[str, list[str] | str],
+    remove_punctuation: bool = True,
+    lowercase_columns: bool = True,
 ) -> pl.DataFrame | pl.LazyFrame:
     """
     Rename columns in a Polars DataFrame based on a mapping dictionary.
@@ -40,16 +62,31 @@ def normalize_columns(
             reverse_mapping[name] = final_name
 
     # First remove all punctuations from the df.columns
-    if isinstance(df, pl.LazyFrame):
-        clean_columns = [col.lower() for col in df.collect_schema().names()]
-        temp_rename_dict = {
-            k: v for k, v in zip(df.collect_schema().names(), clean_columns)
-        }
-        df = df.rename(temp_rename_dict)
-    else:
-        clean_columns = [col.lower() for col in df.columns]
-        clean_columns = [strip_punctuation(col.strip().lower()) for col in df.columns]
-        df.columns = clean_columns
+    if remove_punctuation:
+        if isinstance(df, pl.LazyFrame):
+            clean_columns = [
+                strip_punctuation(col.strip()) for col in df.collect_schema().names()
+            ]
+            temp_rename_dict = {
+                k: v for k, v in zip(df.collect_schema().names(), clean_columns)
+            }
+            df = df.rename(temp_rename_dict)
+        else:
+            clean_columns = [strip_punctuation(col.strip()) for col in df.columns]
+            df.columns = clean_columns
+
+    if lowercase_columns:
+        if isinstance(df, pl.LazyFrame):
+            lowercase_cols = [
+                col.strip().lower() for col in df.collect_schema().names()
+            ]
+            temp_rename_dict = {
+                k: v for k, v in zip(df.collect_schema().names(), lowercase_cols)
+            }
+            df = df.rename(temp_rename_dict)
+        else:
+            clean_columns = [col.strip().lower() for col in df.columns]
+            df.columns = clean_columns
 
     rename_dict = {}
     finalized_names = {}
