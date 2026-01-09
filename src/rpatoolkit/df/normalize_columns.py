@@ -31,6 +31,10 @@ def normalize_columns(
     ValueError
         If multiple columns map to the same standard name.
     """
+
+    if not mapping:
+        return df
+
     # Build a reverse mapping for O(1) lookup of possible column names to standard column name
     reverse_lookup = {}
     for standard_name, possible_names in mapping.items():
