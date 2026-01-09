@@ -1,4 +1,5 @@
 import pytest
+
 from rpatoolkit.utils import strip_punctuation
 
 
