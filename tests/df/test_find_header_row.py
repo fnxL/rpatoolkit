@@ -1,10 +1,10 @@
 import polars as pl
 import tempfile
 import os
-from rpatoolkit.df import find_header_row
+from rpatoolkit.excel import find_header_row
 
 
-def test_find_header_row_with_proper_headers():
+def test_find_header_row_at_beginning():
     """Test finding header row when headers are at the beginning"""
     # Create a test dataframe with headers at row 0
     df = pl.DataFrame(
@@ -34,21 +34,41 @@ def test_find_header_row_with_offset_headers():
     )
     with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
         df.write_excel(tmp.name, include_header=False, position=(2, 0))
-        # Test finding header row (should be 2)
         result = find_header_row(tmp.name)
-        assert result == 2
+        assert result == 4
+
+    os.unlink(tmp.name)
+
+
+def test_find_header_row_with_offset_headers_and_blank_row_at_top():
+    df = pl.DataFrame(
+        {
+            "Name": [None, None, None, "Non Null", None, "Name", "Jane", "Bob"],
+            "Age": [None, None, None, None, None, "Age", 30, 35],
+            "City": [None, None, None, None, None, "City", "LA", "Chicago"],
+        },
+        strict=False,
+    )
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        df.write_excel(tmp.name, include_header=False)
+        result = find_header_row(tmp.name)
+        assert result == 5
 
     os.unlink(tmp.name)
 
 
 def test_find_header_row_with_expected_keywords():
-    from pathlib import Path
-
-    if not Path("tests/data/header_row_offset_2.xlsx").exists():
-        return
-
-    result = find_header_row(
-        "tests/data/header_row_offset_2.xlsx",
-        expected_keywords=["po number"],
+    df = pl.DataFrame(
+        {
+            "Name": [None, None, None, "Non Null", None, "Name", "Jane", "Bob"],
+            "Age": [None, None, None, None, None, "Age", 30, 35],
+            "City": [None, None, None, None, None, "City", "LA", "Chicago"],
+        },
+        strict=False,
     )
-    assert result == 2
+    with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+        df.write_excel(tmp.name, include_header=False)
+        result = find_header_row(tmp.name, expected_keywords=["non null"])
+        assert result == 3
+
+    os.unlink(tmp.name)
