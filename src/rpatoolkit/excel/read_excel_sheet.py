@@ -28,8 +28,8 @@ def read_excel_sheet(
     schema_overrides: dict[str, pl.DataType] | None = None,
     schema_override_strict: bool = False,
     raise_if_empty: bool = True,
-    drop_empty_rows: bool = False,
-    drop_empty_cols: bool = False,
+    drop_empty_rows: bool = True,
+    drop_empty_cols: bool = True,
 ) -> pl.DataFrame:
     """
     Reads a single sheet from an excel file.
@@ -75,18 +75,12 @@ def read_excel_sheet(
             source,
             sheet_name=sheet_name,
             read_options=read_options,
-            drop_empty_cols=False,
-            drop_empty_rows=False,
+            drop_empty_cols=drop_empty_cols,
+            drop_empty_rows=drop_empty_rows,
         )
 
     if raise_if_empty and df.height == 0:
         raise ValueError(f"No rows found in the sheet: '{sheet_name or 'Default'}'")
-
-    if drop_empty_cols:
-        df = df.select([col for col in df.columns if not df[col].is_null().all()])
-
-    if drop_empty_rows:
-        df = df.filter(~pl.all_horizontal(pl.all().is_null()))
 
     if lower_column_names:
         df.columns = [col.strip().lower() for col in df.columns]
@@ -141,9 +135,25 @@ def _read_visible_rows_from_sheet(
 
     headers = visible_rows[idx]
     data = visible_rows[idx + 1 :]
+    # Replace None values in headers with default column names
+    cleaned_headers = []
+    for i, header in enumerate(headers):
+        if header is None:
+            cleaned_headers.append(f"column_{i}")
+        else:
+            cleaned_headers.append(str(header))
+
+    cleaned_data = []
+    for row in data:
+        if not all(
+            cell is None or (isinstance(cell, str) and cell.strip() == "")
+            for cell in row
+        ):
+            cleaned_data.append(row)
 
     return pl.DataFrame(
-        data,
-        schema=headers,
+        cleaned_data,
+        schema=cleaned_headers,
         strict=False,
+        orient="row",
     )
