@@ -1,4 +1,5 @@
 import logging
+
 import polars as pl
 
 log = logging.getLogger(__name__)
@@ -39,8 +40,13 @@ def reorder_columns(
 
     """
     # Select the specified columns in the desired order, then append any remaining columns
-    selected_cols = [pl.col(col) for col in columns_order if col in df.columns]
-    remaining_cols = [pl.col(col) for col in df.columns if col not in columns_order]
+    if isinstance(df, pl.LazyFrame):
+        df_cols = df.collect_schema().names()
+    else:
+        df_cols = df.columns
+
+    selected_cols = [pl.col(col) for col in columns_order if col in df_cols]
+    remaining_cols = [pl.col(col) for col in df_cols if col not in columns_order]
     return df.select(selected_cols + remaining_cols)
 
 
