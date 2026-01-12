@@ -46,23 +46,30 @@ def get_sheet_names(
     return result
 
 
+# TODO: Add support for reading values only from visible columns
 def read_visible_rows(
     source: Any,
     *,
     sheet_name: str | None = None,
     header_row: int | None = None,
+    strip_values: bool = True,
+    strip_headers: bool = True,
 ) -> pl.DataFrame:
     """
     Reads only the visible rows from a specified sheet or first sheet using OpenPyXL.
 
     Parameters
     ----------
-    source : _type_
+    source : Any
         Path or file-like object (excel workbook)
     sheet_name : str | None, optional
         Name of the sheet to read, by default None. If None, reads the first sheet.
     header_row : int | None, optional
         Index of the header row (0-indexed), by default None
+    strip_values : bool, optional
+        Whether to strip leading and trailing whitespace from values of string type, by default True
+    strip_headers : bool, optional
+        Whether to strip leading and trailing whitespace from headers, by default True
 
     Returns
     -------
@@ -76,11 +83,13 @@ def read_visible_rows(
     ValueError
         header_row index is out of boundsf
     """
+
     wb = load_workbook(source, data_only=True)
     if sheet_name:
         try:
             ws = wb[sheet_name]
         except KeyError:
+            wb.close()
             raise ValueError(f"Sheet '{sheet_name}' not found in workbook.")
     else:
         ws = wb[wb.sheetnames[0]]
@@ -92,27 +101,47 @@ def read_visible_rows(
         if is_row_hidden:
             continue
 
-        values = [cell.value if cell.value != "" else None for cell in row]
-        visible_rows.append(values)
+        # Get row values
+        row_values = []
+        for cell in row:
+            val = cell.value
+            if isinstance(cell.value, str) and strip_values:
+                val = val.strip() or None
+            row_values.append(cell.value)
+
+        visible_rows.append(row_values)
+
+    wb.close()
 
     if not visible_rows:
         return pl.DataFrame()
 
-    idx = header_row if header_row else 0
+    idx = header_row if header_row is not None else 0
     if idx >= len(visible_rows):
-        # Index out of bounds
         raise ValueError(f"header_row index: '{header_row}' out of bounds")
 
     headers = visible_rows[idx]
     data = visible_rows[idx + 1 :]
-    # Replace None values in headers with default column names
+
+    # Handle default column names
     cleaned_headers = []
     for i, header in enumerate(headers):
         if header is None:
-            cleaned_headers.append(f"column_{i}")
-        else:
-            cleaned_headers.append(str(header))
+            header = f"column_{i}"
 
+        header = str(header).strip() if header and strip_headers else str(header)
+        cleaned_headers.append(header)
+
+    # Handle duplicate headers
+    seen = {}
+    for i, header in enumerate(cleaned_headers):
+        if header in seen:
+            seen[header] += 1
+            cleaned_headers[i] = f"{header}_{seen[header]}"
+        else:
+            seen[header] = 0
+
+    # Remove empty rows
     cleaned_data = []
     for row in data:
         if not all(
@@ -121,11 +150,15 @@ def read_visible_rows(
         ):
             cleaned_data.append(row)
 
+    if not cleaned_data:
+        return pl.DataFrame(schema=cleaned_headers, strict=False, orient="row")
+
     return pl.DataFrame(
         cleaned_data,
         schema=cleaned_headers,
         strict=False,
         orient="row",
+        infer_schema_length=len(cleaned_data),
     )
 
 
