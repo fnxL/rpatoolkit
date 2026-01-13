@@ -3,7 +3,7 @@ The filesystem module contains several utility functions related to fs
 """
 
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime
 from rpatoolkit.utils import random_string
 
 
@@ -45,7 +45,7 @@ def make_unique_dir(
         >>> print(unique_dir)
         backup_24.10.24_a2b3c4d5-e6f7-8901-2345-678901234567
     """
-    now = datetime.now(timezone.utc)
+    now = datetime.now()
     if suffix is None:
         suffix = random_string()
 
