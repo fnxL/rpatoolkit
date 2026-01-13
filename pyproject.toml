@@ -1,6 +1,6 @@
 [project]
 name = "rpatoolkit"
-version = "0.2.1"
+version = "0.2.2"
 description = "A Python toolkit for Robotic Process Automation (RPA) and ETL pipelines providing solutions to common automation challenges."
 readme = "README.md"
 authors = [
