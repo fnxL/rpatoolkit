@@ -111,7 +111,8 @@ def read_visible_rows(
             val = cell.value
             if isinstance(cell.value, str) and strip_values:
                 val = val.strip() or None
-            row_values.append(cell.value)
+
+            row_values.append(val)
 
         visible_rows.append(row_values)
 
