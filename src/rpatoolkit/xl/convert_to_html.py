@@ -4,6 +4,9 @@ import re
 
 
 def convert_to_html(source: Any):
+    if hasattr(source, "seek"):
+        source.seek(0)
+
     out_stream = xlsx2html(source)
     out_stream.seek(0)
     html_content = out_stream.read()

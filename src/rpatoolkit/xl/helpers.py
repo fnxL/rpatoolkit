@@ -33,6 +33,8 @@ def get_sheet_names(
     list[str]
         List of sheet names
     """
+    if hasattr(source, "seek"):
+        source.seek(0)
 
     sheets_meta = CalamineWorkbook.from_object(source).sheets_metadata
 
@@ -83,6 +85,8 @@ def read_visible_rows(
     ValueError
         header_row index is out of boundsf
     """
+    if hasattr(source, "seek"):
+        source.seek(0)
 
     wb = load_workbook(source, data_only=True)
     if sheet_name:
@@ -206,6 +210,9 @@ def locate_header_row(
     """
     if sheet_id and sheet_name:
         raise ValueError("sheet_id and sheet_name cannot be both specified.")
+
+    if hasattr(source, "seek"):
+        source.seek(0)
 
     wb = CalamineWorkbook.from_object(source)
     if sheet_id:
