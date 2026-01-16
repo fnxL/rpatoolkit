@@ -74,6 +74,7 @@ def read_sheet(
     if find_header_row:
         header_row = locate_header_row(
             source,
+            sheet_name=sheet_name,
             **find_header_row_opts if find_header_row_opts else {},
         )
 
